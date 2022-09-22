@@ -131,7 +131,6 @@
     <Compile Include="BEL.cs" />
     <Compile Include="BLL.cs" />
     <Compile Include="MongoDAL.cs" />
-    <Compile Include="PL - Copy.cs" />
     <Compile Include="PL.cs" />
     <Compile Include="DAL.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
