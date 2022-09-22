@@ -9,7 +9,7 @@ using MongoDB.Bson;
 namespace BEL
 {
 
-    ///////////////////////////// Flavors /////////////////////////////
+    ///////////////////////////// Flavors ///////////////////////////
     public enum Flavors
     {
         Vanilla, //0
@@ -31,9 +31,9 @@ namespace BEL
         }
         public Flavors Flavors { get; set; }
     }
-    ///////////////////////////// Flavors /////////////////////////////
+    ///////////////////////////// Flavors ///////////////////////////
 
-    ///////////////////////////// Extras /////////////////////////////
+    ///////////////////////////// Extras ////////////////////////////
     public enum Extras 
     {
         // + 10
@@ -49,9 +49,9 @@ namespace BEL
         }
         public Extras Extras { get; set; }
     }
-    ///////////////////////////// Extras /////////////////////////////
+    ///////////////////////////// Extras ////////////////////////////
 
-    ///////////////////////////// Cupsize /////////////////////////////
+    ///////////////////////////// Cupsize ///////////////////////////
     public enum Cupsize
     {
         // + 13
@@ -67,17 +67,15 @@ namespace BEL
         }
         public Cupsize Cupsize { get; set; }
     }
-    ///////////////////////////// Cupsize /////////////////////////////
+    ///////////////////////////// Cupsize ///////////////////////////
 
-    ///////////////////////////// sales ///////////////////////////// SQL table 1
+    ///////////////////////////// sales /////////////////////////////
     public class sales
     {
-        ObjectId id { get; set; }
-        /*int sale_id { get; set; }*/
+        ObjectId id { get; set; } //for mongo
+        int sale_id { get; set; } //for mongo
         int price { get; set; }
-        int payment_left { get; set; }
         int completed { get; set; }
-        /*DateTime date { get; set; }*/
         string date { get; set; }
 
 
@@ -99,9 +97,9 @@ namespace BEL
         }
         public sales()
         {
-            /*this.id = new ObjectId();*/
+            this.id = new ObjectId();//for mongo
+            this.sale_id = -1;//for mongo
             this.price = -1;
-            this.payment_left = -1;
             this.completed = -1;
             this.date = "";
             this.cup = Cupsize.RegularCup;
@@ -111,12 +109,10 @@ namespace BEL
         //getters and setters
         public ObjectId get_ObjectId()  { return this.id; }
         public void set_ObjectId(ObjectId id) { this.id = id; }
-        /*public int getsale_id()    { return this.sale_id; }
-        public void setsale_id(int sale_id) { this.sale_id = sale_id; }*/
+        public int getsale_id() { return this.sale_id; }
+        public void setsale_id(int sale_id) { this.sale_id = sale_id; }
         public float getPrice() { return this.price; }
         public void setPrice(int price) { this.price = price; }
-        public float getpayment_left() { return this.payment_left; }
-        public void setpayment_left(int payment_left) { this.payment_left = price; }
         public int getCompleted() { return this.completed; }
         public void setCompleted(int completed) { this.completed = completed; }
         public string getDate() { return this.date; }
@@ -132,26 +128,4 @@ namespace BEL
 
     }
     ///////////////////////////// sales /////////////////////////////
-
- /*   ///////////////////////////// sale_contence ///////////////////////////// SQL table 2
-    public class sale_contence
-    {
-        Cupsize cup { get; set; }
-        List<Flavor> flavors { get; set; }
-        List<Extra> Extras { get; set; }
-        public sale_contence(Cupsize cup, List<Flavor> flavors, List<Extra> Extras)
-        {
-            this.cup = cup;
-            this.flavors = flavors;
-            this.Extras = Extras;
-        }
-        public Cupsize getCup() { return this.cup; }
-        public void setCup(Cupsize cup) { this.cup = cup; }
-        public List<Flavor> getFlavors() { return this.flavors; }
-        public void setFlavors(List<Flavor> flavors) { this.flavors = flavors; }
-        public List<Extra> getExtras() { return this.Extras; }
-        public void setExtras(List<Extra> extras) { this.Extras = extras; } 
-    }
-
-    ///////////////////////////// sale_content /////////////////////////////*/
 }

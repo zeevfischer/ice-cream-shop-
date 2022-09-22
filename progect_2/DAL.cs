@@ -1,10 +1,12 @@
 ﻿using BEL;
 using BLL;
+using MongoDB.Bson;
 using MongoDB.Driver.Core.WireProtocol.Messages;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -30,7 +32,7 @@ namespace DAL
                 Console.WriteLine(e.ToString());
             }
             throw new ArgumentException("Couldn't establish connection with SQL server");
-        }
+        }//
         public static void createDatabase()
         {
             SqlConnection connection = ConnectSQLserver("");
@@ -45,7 +47,7 @@ namespace DAL
             command.ExecuteNonQuery();
             Console.WriteLine("created database project2");
             connection.Close();
-        }
+        }//
         public static void createTables()
         {
             SqlConnection connection = ConnectSQLserver("Database=project2;");
@@ -60,7 +62,6 @@ namespace DAL
                     "(" +
                         "[sale id] INT NOT NULL IDENTITY(1,1) PRIMARY KEY," +
                         "[total price] INT NULL," +
-                        "[payment left] INT NULL" +
                         "[compleated] INT NULL, "+
                         "[date] varchar(45) NOT NULL" +
                     ")";
@@ -85,6 +86,53 @@ namespace DAL
                 Console.WriteLine(exp.ToString());
             }
             connection.Close();
+        }//
+        public static void EndOfDay1()
+        {
+            DateTime localDate = DateTime.Now;
+            string today = localDate.ToString("dd/MM/yyyy");
+
+            int sum_of_all_sales_for_the_day = 0;
+            int number_of_sales_for_day = 0;
+            int average_sale_for_todea = 0;
+
+            SqlConnection connection = ConnectSQLserver("Database=project2;");
+            connection.Open();
+            string sql = $"select * FROM [sales] [sale id];";
+            SqlCommand command = new SqlCommand(sql, connection);
+            SqlDataReader res = command.ExecuteReader();
+            while(res.Read())
+            {
+                string date = res.GetString(3);
+                string[] sub = date.Split(' ');
+
+                if (res.GetInt32(2)==1 && today == sub[0])//if compleated
+                {
+                    sum_of_all_sales_for_the_day += res.GetInt32(1);//total price
+                    number_of_sales_for_day++;
+                }
+            }
+            res.Close();
+            average_sale_for_todea = sum_of_all_sales_for_the_day / number_of_sales_for_day;
+            Console.WriteLine("the total sum is: " + sum_of_all_sales_for_the_day +"\n"+
+                "the nuber of sales are: " + number_of_sales_for_day +"\n"+
+                "the average payment is: " + average_sale_for_todea);
+            connection.Close();
+        }
+        public static void EndOfDay2()
+        {
+            SqlConnection connection = ConnectSQLserver("Database=project2;");
+            connection.Open();
+            string sql = $"select * FROM [sales] [sale id];";
+            SqlCommand command = new SqlCommand(sql, connection);
+            SqlDataReader res= command.ExecuteReader();
+            while (res.Read())
+            {
+                Console.WriteLine("sale id: = " + res.GetInt32(0) +
+                    " total price: = " + res.GetInt32(1) +
+                    " compleated: = " + res.GetInt32(2) +
+                    " date: = " + res.GetString(3) + "\n");
+            }
         }
         public static void CreateAndLoadIngredientsTable()
         {
@@ -152,7 +200,6 @@ namespace DAL
                 sql = "INSERT INTO [dbo].[sales] ([total price], [compleated], [date]) VALUES ("+ sale.getPrice() + ", " + sale.getCompleted() + ", '" + sale.getDate() + "')";
                 command = new SqlCommand(sql, connection);
                 command.ExecuteNonQuery();
-                Console.WriteLine("enterd new sale\n");
             }
             catch (SqlException exp)
             {
@@ -193,8 +240,9 @@ namespace DAL
                 command.ExecuteNonQuery();
             }
             connection.Close();
+            Console.WriteLine("enterd new sale\nyour sale id is: "+ sale_id+"\n");
             return sale_id;
-        }
+        }//
         public static void DeleatSale(int sale_id)
         {
             string sql;
@@ -206,7 +254,6 @@ namespace DAL
                 sql = "DELETE dbo.sales where [sale id] = ("+sale_id+")";
                 command = new SqlCommand(sql, connection);
                 command.ExecuteNonQuery();
-                Console.WriteLine("deleted sale id "+ sale_id);
             }
             catch (SqlException exp)
             {
@@ -217,14 +264,13 @@ namespace DAL
                 sql = "DELETE dbo.[sale contence] where [sale id] = (" + sale_id + ")";
                 command = new SqlCommand(sql, connection);
                 command.ExecuteNonQuery();
-                Console.WriteLine("deleted sale id " + sale_id);
             }
             catch (SqlException exp)
             {
                 Console.WriteLine(exp.ToString());
             }
             connection.Close();
-        }
+        }//
         public static string GetRecit(int sale_id)
         {
             //this is a later function and i can use it to change the entier function GetRecit but never mind
@@ -283,12 +329,12 @@ namespace DAL
                 "ingridients: " + "\n" + contence;
 
             return recit;
-        }
+        }//
         public static sales CreateSale()
         {
             sales newsale = new sales();
             Console.Clear();
-            Console.WriteLine("select a cup size from the folloing");
+            Console.WriteLine("select a cup size from the folloing:");
             var values = Enum.GetValues(typeof(Cupsize));
             string ans = "";
             while(true)
@@ -301,7 +347,7 @@ namespace DAL
                         {
                             Console.WriteLine("for " + v.ToString() + " press " + v.GetHashCode());
                         }
-                        Console.WriteLine("enter -1 to exit");
+                        Console.WriteLine("\nenter -1 to go back");
                         ans = Console.ReadLine();
                         if(Int32.Parse(ans) == -1)
                         {
@@ -309,7 +355,8 @@ namespace DAL
                         }
                         if (Int32.Parse(ans) > 2 || Int32.Parse(ans) < 0)
                         {
-                            Console.WriteLine("enter valid anser");
+                            Console.Clear();
+                            Console.WriteLine("enter valid anser\n");
                         }
                     }
                     while (Int32.Parse(ans) > 2 || Int32.Parse(ans) < 0);// while it is not what i want
@@ -318,7 +365,8 @@ namespace DAL
                 }
                 catch
                 {
-                    Console.WriteLine("enter valid anser");
+                    Console.Clear();
+                    Console.WriteLine("enter valid anser\n");
                 }
             }
             Console.Clear();          
@@ -329,11 +377,12 @@ namespace DAL
                 {
                     do
                     {
-                        Console.WriteLine("select a Flavor from the folloing and -1 to stop");
+                        Console.WriteLine("select a Flavor from the folloing:");
                         foreach (var v in values)
                         {
                             Console.WriteLine("for " + v.ToString() + " press " + v.GetHashCode());
                         }
+                        Console.WriteLine("\nenter -1 to go back");
                         ans = Console.ReadLine();
                         if (Int32.Parse(ans) == -1)
                         {
@@ -341,7 +390,7 @@ namespace DAL
                         }
                         if (Int32.Parse(ans) > 9 || Int32.Parse(ans) < 0)
                         {
-                            Console.WriteLine("enter valid anser");
+                            Console.WriteLine("enter valid anser\n");
                         }
                         else if (BLL.BLL.checkFlaver(newsale, (Flavors)Int32.Parse(ans)) == true && BLL.BLL.checK_sale(newsale) == true)
                         {
@@ -362,7 +411,8 @@ namespace DAL
                 }
                 catch
                 {
-                    Console.WriteLine("enter valid anser");
+                    Console.Clear();
+                    Console.WriteLine("enter valid anser\n");
                 }
             }
             if(ans != "-1")
@@ -378,11 +428,12 @@ namespace DAL
                 {
                     do
                     {
-                        Console.WriteLine("select a Extras from the folloing and -1 to stop");
+                        Console.WriteLine("select a Extras from the folloing:");
                         foreach (var v in values)
                         {
                             Console.WriteLine("for " + v.ToString() + " press " + v.GetHashCode());
                         }
+                        Console.WriteLine("\nenter -1 to go back");
                         ans = Console.ReadLine();
                         if (Int32.Parse(ans) == -1)
                         {
@@ -390,7 +441,8 @@ namespace DAL
                         }
                         if (Int32.Parse(ans) > 2 || Int32.Parse(ans) < 0)
                         {
-                            Console.WriteLine("enter valid anser");
+                            Console.Clear();
+                            Console.WriteLine("enter valid anser\n");
                         }
                         else if (BLL.BLL.checkextra(newsale, (Extras)Int32.Parse(ans)) == true)
                         {
@@ -405,7 +457,8 @@ namespace DAL
                 }
                 catch
                 {
-                    Console.WriteLine("enter valid anser");
+                    Console.Clear();
+                    Console.WriteLine("enter valid anser\n");
                 }
             }
             Console.Clear();
@@ -414,7 +467,7 @@ namespace DAL
             DateTime localDate = DateTime.Now;
             newsale.setDate(localDate.ToString("dd/MM/yyyy HH:mm:ss"));
             return newsale;
-        }
+        }//
         public static void updatesale(int sale_id)
         {
             // we will let you add to the order as mutch as you whant but if you paied you can not return and remove
@@ -423,7 +476,7 @@ namespace DAL
             SqlConnection connection = ConnectSQLserver("Database=project2;");
             connection.Open();
             string sql = $"select * FROM [sales] WHERE [sale id] = (" + sale_id + ");";
-            SqlCommand command = new SqlCommand(sql, connection); ;
+            SqlCommand command = new SqlCommand(sql, connection);
             SqlDataReader res = command.ExecuteReader();
             if (res.Read())
             {
@@ -437,13 +490,14 @@ namespace DAL
             {
                 Console.WriteLine("to change cup size enter 1" + "\n" +
                 "to change Flavers enter 2" + "\n" +
-                "to change extras enter 3" + "\n" +
+                "to change extras enter 3" + "\n\n" +
                 "to go back enter -1");
                 string ans = Console.ReadLine();
                 Console.Clear();
                 // try for what to change
                 try
                 {
+                    //change cup
                     if (Int32.Parse(ans) == 1)
                     {
                         if(compleated == 1)
@@ -451,75 +505,76 @@ namespace DAL
                             Console.WriteLine("you have paid the order was made and you can not change this item\n");
                             break;
                         }
-                        string s = "";
+                        sales new_sale = CreateObjectSaleFromSQL(sale_id);/////////////////////////
                         var values = Enum.GetValues(typeof(Cupsize));
-                        int i = 0;
-                        foreach (var newcup in values)
-                        {
-                            s += "for: " + newcup.ToString() + " enter " + i+"\n";
-                            i++;
-                        }
-                        bool breaker = true;
-                        while (breaker)
+                        while (true)
                         {
                             // try for new cup
                             try
                             {
                                 do
                                 {
-                                    Console.WriteLine(s);
-                                    ans = Console.ReadLine();
-                                }
-                                while (Int32.Parse(ans) <= 0 && Int32.Parse(ans) >= 2);
-
-                                connection = ConnectSQLserver("Database=project2;");
-                                connection.Open();
-
-                                // GET NEW CUP INGREDIENT ID
-                                string new_cup = Enum.GetName(typeof(Cupsize), Int32.Parse(ans)).ToString();
-                                sql = $"select * FROM [Ingredients] WHERE [Name] = ('" + new_cup  + "');";
-                                command = new SqlCommand(sql, connection); ;
-                                res = command.ExecuteReader();
-                                res.Read();
-                                int new_cup_id = res.GetInt32(0);
-                                res.Close();
-
-                                //chek that new ingreadient dose not exist in old order
-                                sql = $"select * FROM [sale contence] WHERE [sale id] = (" + sale_id + ");";
-                                command = new SqlCommand(sql, connection); ;
-                                res = command.ExecuteReader();//
-                                int line_id = -1;
-                                while (res.Read())
-                                {
-                                    if(res.GetInt32(2) == new_cup_id)
+                                    foreach (var newcup in values)
                                     {
-                                        Console.WriteLine("ingreadient already exists");
-                                        Thread.Sleep(3000);
-                                        Console.Clear();
+                                        Console.WriteLine("for " + newcup.ToString() + " press " + newcup.GetHashCode());
+                                    }
+                                    Console.WriteLine("\nenter -1 to go back");
+                                    ans = Console.ReadLine();
+                                    if (Int32.Parse(ans) == -1)
+                                    {
                                         break;
                                     }
-                                    //yes this is not elegent and very not safe when code will need update but fouck it 
-                                    if(res.GetInt32(2) >= 13 && res.GetInt32(2) <= 15)
+                                    if (Int32.Parse(ans) > 2 || Int32.Parse(ans) < 0)
                                     {
-                                        line_id = res.GetInt32(0);
+                                        Console.Clear();
+                                        Console.WriteLine("enter valid anser\n");
+                                    }
+                                    else if (BLL.BLL.checkcup(new_sale,(Cupsize)Int32.Parse(ans)))
+                                    {
+                                        new_sale.setCup((Cupsize)Int32.Parse(ans));
+
+                                        connection = ConnectSQLserver("Database=project2;");
+                                        connection.Open();
+                                        // GET NEW CUP INGREDIENT ID
+                                        string new_cup = Enum.GetName(typeof(Cupsize), Int32.Parse(ans)).ToString();
+                                        sql = $"select * FROM [Ingredients] WHERE [Name] = ('" + new_cup + "');";
+                                        command = new SqlCommand(sql, connection); ;
+                                        res = command.ExecuteReader();
+                                        res.Read();
+                                        int new_cup_id = res.GetInt32(0);
+                                        res.Close();
+
+                                        //chek that new ingreadient dose not exist in old order
+                                        sql = $"select * FROM [sale contence] WHERE [sale id] = (" + sale_id + ");";
+                                        command = new SqlCommand(sql, connection); ;
+                                        res = command.ExecuteReader();
+                                        int line_id = -1;
+                                        while (res.Read())
+                                        {
+                                            //yes this is not elegent and very not safe when code will need update but fouck it 
+                                            if (res.GetInt32(2) >= 13 && res.GetInt32(2) <= 15)
+                                            {
+                                                line_id = res.GetInt32(0);
+                                            }
+                                        }
+                                        res.Close();
+                                        // UPDATE
+                                        sql = "UPDATE dbo.[sale contence] SET [pruduct id] = (" + new_cup_id + ") WHERE [id] = (" + line_id + ")";
+                                        command = new SqlCommand(sql, connection);
+                                        command.ExecuteNonQuery();
+                                        connection.Close();
+                                        Console.Clear();
+                                        Console.WriteLine("cup size changed\n");
+                                        break;
                                     }
                                 }
-                                res.Close();
-                                // UPDATE
-                                sql = "UPDATE dbo.[sale contence] SET [pruduct id] = (" + new_cup_id + ") WHERE [id] = (" + line_id + ")";
-                                command = new SqlCommand(sql, connection);
-                                command.ExecuteNonQuery();
-                                connection.Close();
+                                while (true);
                                 break;
                             }
                             catch
                             {
                                 Console.WriteLine("pleas enter a valid input");
                             }
-                        }
-                        if(!breaker)
-                        {
-                            break;
                         }
                     }
                     //if i whant to change the ice cream flavers
@@ -804,6 +859,7 @@ namespace DAL
                             }
                         }
                     }
+                    //exit
                     else if(Int32.Parse(ans) == -1)
                     {
                         break;
@@ -829,7 +885,7 @@ namespace DAL
                     Console.WriteLine("pleas enter a valid input");
                 }
             }
-        }
+        }//
         public static string UnfinishedSales()
         {
             string unfinishedSales = "un finished sales are: ";
@@ -844,16 +900,33 @@ namespace DAL
                 unfinishedSales += "" + temp + ",";
             }
             return unfinishedSales;
-        }
+        }//
         public static void pay(int sale_id)
         {
             SqlConnection connection = ConnectSQLserver("Database=project2;");
             connection.Open();
-            string sql = "UPDATE dbo.[sales] SET [compleated] = (" + 1 + ") WHERE [sale id] = (" + sale_id + ")";
+            string sql = $"select * FROM sales WHERE [sale id] = (" + sale_id + ");";
             SqlCommand command = new SqlCommand(sql, connection);
-            command.ExecuteNonQuery();
-            connection.Close();
-        }
+            SqlDataReader res = command.ExecuteReader();
+
+            res.Read();
+            if (res.GetInt32(2) == 1)
+            {
+                Console.Clear();
+                Console.WriteLine("payment was compleated already\n");
+            }
+            else
+            {
+                res.Close();
+                sql = "UPDATE dbo.[sales] SET [compleated] = 1 WHERE [sale id] = (" + sale_id + ")";
+                command = new SqlCommand(sql, connection);
+                command.ExecuteNonQuery();
+                connection.Close();
+                /*Console.Clear();*/
+                Console.WriteLine("\npayment completed\n");
+            }
+
+        }//
         public static sales CreateObjectSaleFromSQL(int sale_id)
         {
             sales new_sale = new sales();
@@ -902,46 +975,87 @@ namespace DAL
             res.Close();
             return (new_sale);
         }
-
-
-        /*        static void Main(string[] args)
-                {
-                    createDatabase();
-                    createTables();
-                    CreateAndLoadIngredientsTable();
-                    EnterSaleToSQL(CreateSale());
-                    string temp = GetRecit(1);
-                    Console.WriteLine();
-                    Console.WriteLine(temp);
-                    string temp2 = UnfinishedSales();
-                    Console.WriteLine();
-                    Console.WriteLine(temp2);
-                    *//*DeleatSale(888);*//*
-                }*/
-        /*public static sales demo()
+        public static void Moste_popular_Ingredient()
         {
-
-            *//*int sale_id = 888;*//*
-            int compleated = 0;
-            DateTime localDate = DateTime.Now;
-            string date = localDate.ToString("dd/MM/yyyy HH:mm:ss");
-            Cupsize cup = Cupsize.RegularCup;
-            List<Flavors> F = new List<Flavors>();
-            F.Add(Flavors.Coconut);
-            F.Add(Flavors.Pecan);
-            F.Add(Flavors.Vanilla);
-            List<Extras> E = new List<Extras>();
-            E.Add(Extras.Peanuts);
-            E.Add(Extras.maple);
-            sales S = new sales(*//*sale_id,*/ /*price,*//* compleated, date, cup, F, E);
-            BLL.BLL.total_price(S);
-            foreach (var fla in F)
+            try
             {
-                Console.WriteLine(fla);
+                int compleated = -1;
+                SqlConnection connection = ConnectSQLserver("Database=project2;");
+                connection.Open();
+                string sql;
+                sql = $"select [Name] , count(Name) FROM (select [Name],[pruduct id] FROM [Ingredients] I JOIN [sale contence] C ON I.[IngredientId] = C.[pruduct id]) AS temp GROUP BY Name;";
+                SqlCommand command = new SqlCommand(sql, connection);
+                SqlDataReader res = command.ExecuteReader();
+
+                Dictionary<string, int> popular = new Dictionary<string, int>();
+                int max = -1;
+                while (res.Read())
+                {
+                    if(res.GetInt32(1) > max)
+                    {
+                        popular.Clear();
+                        max = res.GetInt32(1);
+                        popular[res.GetString(0)] = res.GetInt32(1);
+                    }
+                    if(res.GetInt32(1) == max)
+                    {
+                        popular[res.GetString(0)] = res.GetInt32(1);
+                    }
+                }
+                res.Close();
+                string p = "";
+                foreach (string s in popular.Keys)
+                {
+                    p += s + ", ";
+                }
+                Console.WriteLine("the popular items are: " + p + " with the amount of: " + max);
+
             }
-            Console.WriteLine(S.getPrice());
-            *//*Console.Clear();*//*
-            return S;
-        }*/
+            catch(SqlException e)
+            {
+                Console.WriteLine(e);
+            }
+        }//
+        public static void Moste_popular_flaver()
+        {
+            try
+            {
+                int compleated = -1;
+                SqlConnection connection = ConnectSQLserver("Database=project2;");
+                connection.Open();
+                string sql;
+                sql = $"select [Name] , count(Name) FROM (select [Name],[pruduct id] FROM [Ingredients] I JOIN [sale contence] C ON I.[IngredientId] = C.[pruduct id] AND I.[IngredientId] < 10) AS temp GROUP BY Name;";
+                SqlCommand command = new SqlCommand(sql, connection);
+                SqlDataReader res = command.ExecuteReader();
+
+                Dictionary<string, int> popular = new Dictionary<string, int>();
+                int max = -1;
+                while (res.Read())
+                {
+                    if (res.GetInt32(1) > max)
+                    {
+                        popular.Clear();
+                        max = res.GetInt32(1);
+                        popular[res.GetString(0)] = res.GetInt32(1);
+                    }
+                    if (res.GetInt32(1) == max)
+                    {
+                        popular[res.GetString(0)] = res.GetInt32(1);
+                    }
+                }
+                res.Close();
+                string p = "";
+                foreach (string s in popular.Keys)
+                {
+                    p += s + ", ";
+                }
+                Console.WriteLine("the popular flavers are: " + p + " with the amount of: " + max);
+
+            }
+            catch (SqlException e)
+            {
+                Console.WriteLine(e);
+            }
+        }//
     }
 }

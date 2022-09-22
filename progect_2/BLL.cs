@@ -44,6 +44,11 @@ namespace BLL
                     /*Console.WriteLine("the number of ice cream balls is not valid");*/
                     return false;
                 }
+                if (sale.getCup() == Cupsize.RegularCup && sale.getFlavors().Count() > 2 && sale.getExtras().Count() > 0)
+                {
+                    Console.WriteLine("you have a RegularCup and can not add extras");
+                    return false;
+                }
             }
             return true;
         }
@@ -104,6 +109,29 @@ namespace BLL
             }
             return true;
         }
+        /*string new_cup = Enum.GetName(typeof(Cupsize), Int32.Parse(ans)).ToString();*/
+        public static Boolean checkcup(sales sale,Cupsize C)
+        {
+            if (C == Cupsize.RegularCup && sale.getFlavors().Count() > 2 && sale.getExtras().Count() > 0)
+            {
+                Console.Clear();
+                Console.WriteLine("a RegularCup and can not add extras and this order has extras\n");
+                return false;
+            }
+            if(sale.getFlavors().Count() > 3 && C != Cupsize.Box)
+            {
+                Console.Clear();
+                Console.WriteLine("you have to meny flavers to fit in a cup and can only have a box\n");
+                return false;
+            }
+            if(sale.getCup() == C)
+            {
+                Console.Clear();
+                Console.WriteLine("ingreadient already exists\n");
+                return false;
+            }
+            return true;
+        }
         public static void total_price(sales sale)
         {
             int total = 0;
@@ -139,6 +167,6 @@ namespace BLL
             total += sale.getExtras().Count() * 2;
             sale.setPrice(total);
         }
-
     }
 }
+
